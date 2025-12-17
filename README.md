@@ -1,191 +1,196 @@
-# CLI Pomodoro Timer
+# CLI Pomodoro Timer 🍅
 
-A beautiful command-line pomodoro timer with Rich progress bar, multiple parallel timers, and todo management.
+一个美观的命令行番茄钟工具，支持多计时器并行、待办事项管理和系统通知。
 
-## Features
+## ✨ 功能特性
 
-- **Multiple Parallel Timers** - Run multiple countdown timers simultaneously
-- **Todo Management** - Create, complete, and track todo items with persistence
-- **Timer-Todo Association** - Link timers to todos for automatic completion
-- **Beautiful UI** - Rich progress bars, tables, and colored output
-- **System Notifications** - Desktop notifications when timers complete
-- **Data Persistence** - Todos saved to JSON file automatically
-- **Cross-Platform** - Works on Windows, macOS, and Linux
+- **多计时器并行** - 同时运行多个倒计时，互不干扰
+- **待办事项管理** - 创建、完成、追踪待办，数据自动持久化
+- **计时器关联** - 创建待办时可关联计时器，完成后自动标记
+- **实时进度显示** - Rich 进度条原地刷新，流畅美观
+- **系统通知** - 计时结束时弹出桌面通知
+- **数据持久化** - 待办自动保存到 JSON 文件
+- **跨平台支持** - Windows、macOS、Linux 均可运行
 
-## Tech Stack
+## 🛠️ 技术栈
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| CLI Framework | [Typer](https://typer.tiangolo.com/) | Command-line interface and argument parsing |
-| Terminal UI | [Rich](https://rich.readthedocs.io/) | Progress bars, tables, panels, and styled output |
-| Notifications | [Plyer](https://plyer.readthedocs.io/) | Cross-platform desktop notifications |
-| Async Runtime | asyncio | Parallel timer execution |
-| Data Storage | JSON | Todo persistence |
-| Language | Python 3.9+ | Core implementation |
+| 组件 | 技术 | 用途 |
+|------|------|------|
+| CLI 框架 | [Typer](https://typer.tiangolo.com/) | 命令行接口和参数解析 |
+| 终端 UI | [Rich](https://rich.readthedocs.io/) | 进度条、表格、面板和样式输出 |
+| 系统通知 | [Plyer](https://plyer.readthedocs.io/) | 跨平台桌面通知 |
+| 异步运行 | asyncio | 多计时器并行执行 |
+| 数据存储 | JSON | 待办事项持久化 |
+| 开发语言 | Python 3.9+ | 核心实现 |
 
-## Project Structure
+## 📁 项目结构
 
 ```
 cli-pomodoro/
-├── pomodoro.py    # Main entry point and CLI commands
-├── storage.py     # Data models (Todo, Timer) and JSON persistence
-├── todo.py        # TodoManager for CRUD operations
-├── timer.py       # Async TimerManager for parallel timers
-├── ui.py          # Rich UI components
+├── pomodoro.py    # 主入口和 CLI 命令
+├── storage.py     # 数据模型（Todo, Timer）和 JSON 持久化
+├── todo.py        # 待办事项管理器
+├── timer.py       # 异步计时器管理器
+├── ui.py          # Rich UI 组件
 ├── data/
-│   └── todos.json # Persisted todo data
-├── pyproject.toml # Project configuration
+│   └── todos.json # 待办数据文件
+├── pyproject.toml # 项目配置
 └── README.md
 ```
 
-## Installation
+## 🚀 安装
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/Cluelessthx/cli-pomodoro.git
 cd cli-pomodoro
 
-# Install dependencies
+# 安装依赖
 pip install rich typer plyer
 ```
 
-## Usage
+## 📖 使用方法
 
-### Interactive Mode (Recommended)
+### 交互模式（推荐）
 
-Start the interactive mode for full functionality with multiple timers:
+启动交互模式，支持多计时器并行和完整功能：
 
 ```bash
 python pomodoro.py
-# or
+# 或
 python pomodoro.py run
 ```
 
-#### Interactive Commands
+#### 交互命令
 
-| Command | Description |
-|---------|-------------|
-| `add <minutes> [title]` | Add and start a new timer |
-| `todo <title>` | Add a todo (prompts for timer association) |
-| `list` | Show all todos |
-| `done <id>` | Mark a todo as complete |
-| `del <id>` | Delete a todo or timer |
-| `pause <id>` | Pause a running timer |
-| `resume <id>` | Resume a paused timer |
-| `clear` | Remove all completed todos |
-| `help` | Show available commands |
-| `quit` / `q` | Exit the application |
+| 命令 | 说明 |
+|------|------|
+| `add <分钟> [标题]` | 添加并启动新计时器 |
+| `todo <标题>` | 添加待办（会询问是否关联计时器） |
+| `watch` | 实时监控模式，按任意键退出 |
+| `status` / `s` | 刷新显示当前状态 |
+| `list` | 显示所有待办 |
+| `done <id>` | 标记待办为已完成 |
+| `del <id>` | 删除待办或计时器 |
+| `pause <id>` | 暂停计时器 |
+| `resume <id>` | 恢复暂停的计时器 |
+| `clear` | 清除所有已完成的待办 |
+| `help` | 显示帮助信息 |
+| `quit` / `q` | 退出程序 |
 
-### Classic Single Timer Mode
+### 经典单计时器模式
 
 ```bash
-# Start a 25-minute timer (default)
+# 启动 25 分钟计时器（默认）
 python pomodoro.py start
 
-# Start a custom duration timer
+# 启动指定时长的计时器
 python pomodoro.py start 30
 
-# Start with a custom title
-python pomodoro.py start 25 --title "Deep Work"
+# 启动带标题的计时器
+python pomodoro.py start 25 --title "专注工作"
 ```
 
-### Todo Commands
+### 待办命令
 
 ```bash
-# Add a todo
-python pomodoro.py todo add "Write documentation"
+# 添加待办
+python pomodoro.py todo add "写文档"
 
-# Add a todo with an associated timer
-python pomodoro.py todo add "Code review" --timer 25
+# 添加待办并关联 25 分钟计时器
+python pomodoro.py todo add "代码审查" --timer 25
 
-# List pending todos
+# 查看待办列表
 python pomodoro.py todo list
 
-# List all todos (including completed)
+# 查看所有待办（包括已完成）
 python pomodoro.py todo list --all
 
-# Mark a todo as complete
+# 标记待办为完成
 python pomodoro.py todo done <id>
 
-# Delete a todo
+# 删除待办
 python pomodoro.py todo delete <id>
 
-# Clear all completed todos
+# 清除已完成的待办
 python pomodoro.py todo clear
 ```
 
-## Screenshots
+## 🖥️ 界面预览
 
-### Timer Display
+### 计时器显示
 ```
                                <*> Active Timers
 ┌──────────┬───────────────┬───────────────────────────┬──────────┬───────────┐
 │ ID       │ Title         │         Progress          │     Time │  Status   │
 ├──────────┼───────────────┼───────────────────────────┼──────────┼───────────┤
-│ abc123   │ Focus Session │   ========............    │    15:00 │  RUNNING  │
-│ def456   │ Code Review   │   ===.................    │    22:30 │  RUNNING  │
+│ abc123   │ 专注工作      │   ========............    │    15:00 │  RUNNING  │
+│ def456   │ 代码审查      │   ===.................    │    22:30 │  RUNNING  │
 └──────────┴───────────────┴───────────────────────────┴──────────┴───────────┘
 ```
 
-### Todo List
+### 待办列表
 ```
                                  Pending Todos
 ┌──────────────┬──────────┬─────────────────────────────┬──────────────────────┐
 │ ID           │  Status  │ Title                       │        Timer         │
 ├──────────────┼──────────┼─────────────────────────────┼──────────────────────┤
-│ a1b2c3       │   [ ]    │ Write documentation         │         25m          │
-│ d4e5f6       │   [v]    │ Review PR #123              │          -           │
+│ a1b2c3       │   [ ]    │ 写文档                      │         25m          │
+│ d4e5f6       │   [v]    │ 审查 PR #123                │          -           │
 └──────────────┴──────────┴─────────────────────────────┴──────────────────────┘
 ```
 
-## Architecture
+### 单计时器进度条
+```
+⠋ 专注工作 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23:45 0:01:15
+```
 
-### Data Flow
+## 🏗️ 架构设计
 
 ```
-User Input
+用户输入
     │
     ▼
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │  pomodoro   │────▶│ TimerManager │────▶│     UI      │
-│    .py      │     │  (async)     │     │   (Rich)    │
+│    .py      │     │   (异步)     │     │   (Rich)    │
 └─────────────┘     └──────────────┘     └─────────────┘
     │                                           │
     ▼                                           ▼
-┌─────────────┐     ┌──────────────┐     Terminal Output
+┌─────────────┐     ┌──────────────┐       终端输出
 │ TodoManager │────▶│   Storage    │
 └─────────────┘     │   (JSON)     │
                     └──────────────┘
 ```
 
-### Key Design Decisions
+### 设计决策
 
-- **Async Architecture**: Uses `asyncio` for non-blocking parallel timer execution
-- **Modular Design**: Separated concerns into storage, timer, todo, and UI modules
-- **Rich Integration**: Leverages Rich library for beautiful terminal output
-- **JSON Persistence**: Simple file-based storage without external database dependencies
+- **异步架构** - 使用 `asyncio` 实现非阻塞的多计时器并行
+- **模块化设计** - 存储、计时器、待办、UI 分离，职责清晰
+- **Rich 集成** - 充分利用 Rich 库实现美观的终端输出
+- **JSON 持久化** - 简单的文件存储，无需外部数据库
 
-## Configuration
+## ⚙️ 配置
 
-Default settings are defined in the code:
+默认设置：
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Default timer duration | 25 minutes | Standard Pomodoro length |
-| Data directory | `./data/` | Location for JSON storage |
-| Notification timeout | 10 seconds | Desktop notification duration |
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| 默认计时时长 | 25 分钟 | 标准番茄钟时长 |
+| 数据目录 | `./data/` | JSON 文件存储位置 |
+| 通知超时 | 10 秒 | 桌面通知显示时长 |
 
-## Requirements
+## 📋 系统要求
 
 - Python 3.9+
 - rich >= 13.0.0
 - typer >= 0.9.0
 - plyer >= 2.1.0
 
-## License
+## 📄 许可证
 
 MIT License
 
-## Contributing
+## 🤝 贡献
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+欢迎提交 Pull Request！
