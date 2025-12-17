@@ -1,0 +1,17 @@
+[project]
+name = "cli-pomodoro"
+version = "1.0.0"
+description = "A beautiful CLI pomodoro timer with Rich progress bar"
+requires-python = ">=3.9"
+dependencies = [
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "plyer>=2.1.0",
+]
+
+[project.scripts]
+pomodoro = "pomodoro:app"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
