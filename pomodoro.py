@@ -75,6 +75,8 @@ async def handle_command(cmd: str) -> bool:
         console.print("[bold cyan]Available Commands:[/bold cyan]")
         console.print("  [green]add <minutes> [title][/green] - Add a new timer")
         console.print("  [green]todo <title>[/green]         - Add a new todo (asks for timer)")
+        console.print("  [green]status / s[/green]           - Refresh and show current status")
+        console.print("  [green]watch[/green]                - Watch timers in real-time")
         console.print("  [green]list[/green]                 - Show all todos")
         console.print("  [green]done <id>[/green]            - Mark todo as complete")
         console.print("  [green]del <id>[/green]             - Delete a todo or timer")
@@ -83,6 +85,55 @@ async def handle_command(cmd: str) -> bool:
         console.print("  [green]clear[/green]                - Clear completed todos")
         console.print("  [green]quit / q[/green]             - Exit the application")
         console.print()
+
+    elif command in ("status", "s"):
+        # Just refresh - the display will be updated after this returns
+        pass
+
+    elif command == "watch":
+        # Real-time watch mode with in-place refresh
+        if not timer_manager.has_active_timers():
+            ui.print_info("No active timers to watch")
+            return True
+
+        from rich.live import Live
+        from rich.console import Group
+        from rich.text import Text
+        import sys
+
+        # Platform-specific keyboard detection
+        if sys.platform == "win32":
+            import msvcrt
+            def key_pressed():
+                return msvcrt.kbhit()
+            def get_key():
+                return msvcrt.getch()
+        else:
+            import select
+            def key_pressed():
+                return select.select([sys.stdin], [], [], 0)[0]
+            def get_key():
+                return sys.stdin.read(1)
+
+        def make_watch_display():
+            hint = Text("Press any key to exit watch mode", style="dim")
+            return Group(
+                ui.create_timer_table(timer_manager.get_active_timers()),
+                "",
+                hint,
+            )
+
+        with Live(make_watch_display(), refresh_per_second=4, console=console) as live:
+            while timer_manager.has_active_timers():
+                # Check for key press to exit
+                if key_pressed():
+                    get_key()  # Consume the key
+                    console.print("\n[dim]Exited watch mode[/dim]")
+                    break
+                live.update(make_watch_display())
+                await asyncio.sleep(0.25)
+            else:
+                ui.print_info("All timers completed!")
 
     elif command == "add":
         # Add a timer
@@ -190,6 +241,16 @@ async def handle_command(cmd: str) -> bool:
     return True
 
 
+def refresh_display():
+    """Refresh the main display"""
+    console.print()
+    console.print(ui.create_main_display(
+        timer_manager.get_active_timers(),
+        todo_manager.list_pending(),
+    ))
+    console.print()
+
+
 async def input_loop():
     """Async input loop that reads user commands"""
     loop = asyncio.get_event_loop()
@@ -201,6 +262,8 @@ async def input_loop():
             should_continue = await handle_command(cmd)
             if not should_continue:
                 break
+            # Refresh display after each command
+            refresh_display()
         except EOFError:
             break
         except KeyboardInterrupt:
@@ -262,15 +325,31 @@ def start(
     console.print(f"\n{SYMBOLS['tomato']} Starting timer: [bold]{title}[/bold] ({minutes} minutes)")
     console.print("[dim]Press Ctrl+C to cancel[/dim]\n")
 
+    from rich.live import Live
+    from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn, SpinnerColumn
+
     async def run_single_timer():
         timer_manager.start_timer(timer.id)
-        while not timer.is_complete:
-            console.print(
-                f"\r{SYMBOLS['tomato']} {timer.format_remaining()} remaining...  ",
-                end=""
-            )
-            await asyncio.sleep(1)
-        console.print()
+
+        progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[bold]{task.description}[/bold]"),
+            BarColumn(bar_width=40, complete_style="red", finished_style="green"),
+            TextColumn("[cyan]{task.fields[remaining]}[/cyan]"),
+            TimeRemainingColumn(),
+            console=console,
+        )
+
+        with progress:
+            task_id = progress.add_task(title, total=timer.total_seconds, remaining=timer.format_remaining())
+            while not timer.is_complete:
+                progress.update(
+                    task_id,
+                    completed=timer.elapsed_seconds,
+                    remaining=timer.format_remaining()
+                )
+                await asyncio.sleep(0.25)
+            progress.update(task_id, completed=timer.total_seconds, remaining="00:00")
 
     try:
         asyncio.run(run_single_timer())
@@ -300,15 +379,30 @@ def todo_add(
             new_timer = timer_manager.add_timer(title, timer, todo_id=todo.id)
             timer_manager.set_callbacks(on_complete=on_timer_complete)
 
+            from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn, SpinnerColumn
+
             async def run_timer():
                 timer_manager.start_timer(new_timer.id)
-                while not new_timer.is_complete:
-                    console.print(
-                        f"\r{SYMBOLS['tomato']} {new_timer.format_remaining()} remaining...  ",
-                        end=""
-                    )
-                    await asyncio.sleep(1)
-                console.print()
+
+                progress = Progress(
+                    SpinnerColumn(),
+                    TextColumn("[bold]{task.description}[/bold]"),
+                    BarColumn(bar_width=40, complete_style="red", finished_style="green"),
+                    TextColumn("[cyan]{task.fields[remaining]}[/cyan]"),
+                    TimeRemainingColumn(),
+                    console=console,
+                )
+
+                with progress:
+                    task_id = progress.add_task(title, total=new_timer.total_seconds, remaining=new_timer.format_remaining())
+                    while not new_timer.is_complete:
+                        progress.update(
+                            task_id,
+                            completed=new_timer.elapsed_seconds,
+                            remaining=new_timer.format_remaining()
+                        )
+                        await asyncio.sleep(0.25)
+                    progress.update(task_id, completed=new_timer.total_seconds, remaining="00:00")
 
             try:
                 asyncio.run(run_timer())
